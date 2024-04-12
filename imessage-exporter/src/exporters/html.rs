@@ -1428,6 +1428,7 @@ mod tests {
             custom_name: None,
             platform: Platform::macOS,
             ignore_disk_space: false,
+            phonenumber_to_name_dict: None,
         }
     }
 

@@ -55,7 +55,7 @@ pub struct Config {
     /// Converter type used when converting image files
     pub converter: Option<Converter>,
     /// Map of phonenumber to human name
-    pub phonenumber_to_humanname__option_map: Option<HashMap<String, String>>
+    pub phonenumber_to_humanname_option_map: Option<HashMap<String, String>>
 }
 
 impl Config {
@@ -194,7 +194,7 @@ impl Config {
     /// let app = Config::new(options).unwrap();
     /// ```
     pub fn new(options: Options) -> Result<Config, RuntimeError> {
-        let phonenumber_to_humanname__option_map = match &options.phonenumber_to_name_dict {
+        let phonenumber_to_humanname_option_map = match &options.phonenumber_to_name_dict {
             None => None,
             Some(file_path) => {
                 match std::fs::read_to_string(file_path) {
@@ -233,7 +233,7 @@ impl Config {
             offset: get_offset(),
             db: conn,
             converter: Converter::determine(),
-            phonenumber_to_humanname__option_map
+            phonenumber_to_humanname_option_map
         })
     }
 
@@ -362,7 +362,12 @@ impl Config {
             return self.options.custom_name.as_deref().unwrap_or(ME);
         } else if let Some(handle_id) = handle_id {
             return match self.participants.get(&handle_id) {
-                Some(contact) => contact,
+                Some(contact) => match &self.phonenumber_to_humanname_option_map {
+                    Some(map) => {
+                        map.get(contact).unwrap_or_else(|| contact)
+                    },
+                    None => contact
+                }
                 None => UNKNOWN,
             };
         }
