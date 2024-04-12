@@ -31,6 +31,7 @@ pub const OPTION_DISABLE_LAZY_LOADING: &str = "no-lazy";
 pub const OPTION_CUSTOM_NAME: &str = "custom-name";
 pub const OPTION_PLATFORM: &str = "platform";
 pub const OPTION_BYPASS_FREE_SPACE_CHECK: &str = "ignore-disk-warning";
+pub const OPTION_PHONENUMBER_TO_CONTACTNAME_DICT: &str = "map-phonenumber-to-name";
 
 // Other CLI Text
 pub const SUPPORTED_FILE_TYPES: &str = "txt, html";
@@ -66,6 +67,8 @@ pub struct Options {
     pub platform: Platform,
     /// If true, disable the free disk space check
     pub ignore_disk_space: bool,
+    /// path to the phonenumber to name dict
+    pub phonenumber_to_name_dict: Option<String>,
 }
 
 impl Options {
@@ -82,6 +85,7 @@ impl Options {
         let custom_name: Option<&String> = args.get_one(OPTION_CUSTOM_NAME);
         let platform_type: Option<&String> = args.get_one(OPTION_PLATFORM);
         let ignore_disk_space = args.get_flag(OPTION_BYPASS_FREE_SPACE_CHECK);
+        let number_to_name_dict:Option<&String> = args.get_one(OPTION_PHONENUMBER_TO_CONTACTNAME_DICT);
 
         // Build the export type
         let export_type: Option<ExportType> = match export_file_type {
@@ -219,6 +223,7 @@ impl Options {
             custom_name: custom_name.cloned(),
             platform,
             ignore_disk_space,
+            phonenumber_to_name_dict: number_to_name_dict.cloned()
         })
     }
 
@@ -380,6 +385,14 @@ fn get_command() -> Command {
                 .action(ArgAction::SetTrue)
                 .display_order(11)
         )
+        .arg(
+            Arg::new(OPTION_PHONENUMBER_TO_CONTACTNAME_DICT)
+                .short('n')
+                .long(OPTION_PHONENUMBER_TO_CONTACTNAME_DICT)
+                .help("Path of JSON file with map of phone number to contact name.\n")
+                .display_order(12)
+                .value_name("path/to/map_phonenumber_to_contactname.json"),
+        )
 }
 
 /// Parse arguments from the command line
@@ -422,6 +435,7 @@ mod arg_tests {
             custom_name: None,
             platform: Platform::default(),
             ignore_disk_space: false,
+            phonenumber_to_name_dict: None
         };
 
         assert_eq!(actual, expected);
@@ -516,6 +530,7 @@ mod arg_tests {
             custom_name: None,
             platform: Platform::default(),
             ignore_disk_space: false,
+            phonenumber_to_name_dict: None
         };
 
         assert_eq!(actual, expected);
@@ -544,6 +559,7 @@ mod arg_tests {
             custom_name: None,
             platform: Platform::default(),
             ignore_disk_space: false,
+            phonenumber_to_name_dict: None
         };
 
         assert_eq!(actual, expected);

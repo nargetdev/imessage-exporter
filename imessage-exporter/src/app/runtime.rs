@@ -54,6 +54,8 @@ pub struct Config {
     pub db: Connection,
     /// Converter type used when converting image files
     pub converter: Option<Converter>,
+    /// Map of phonenumber to human name
+    pub phonenumber_to_humanname__option_map: Option<HashMap<String, String>>
 }
 
 impl Config {
@@ -192,6 +194,21 @@ impl Config {
     /// let app = Config::new(options).unwrap();
     /// ```
     pub fn new(options: Options) -> Result<Config, RuntimeError> {
+        let phonenumber_to_humanname__option_map = match &options.phonenumber_to_name_dict {
+            None => None,
+            Some(file_path) => {
+                match std::fs::read_to_string(file_path) {
+                    Ok(contents) => {
+                        match serde_json::from_str::<HashMap<String, String>>(&contents) {
+                            Ok(map) => Some(map),
+                            Err(_) => None,
+                        }
+                    },
+                    Err(_) => None,
+                }
+            },
+        };
+
         let conn = get_connection(&options.get_db_path()).map_err(RuntimeError::DatabaseError)?;
         eprintln!("Building cache...");
         eprintln!("[1/4] Caching chats...");
@@ -204,6 +221,7 @@ impl Config {
         eprintln!("[4/4] Caching reactions...");
         let reactions = Message::cache(&conn).map_err(RuntimeError::DatabaseError)?;
         eprintln!("Cache built!");
+
         Ok(Config {
             chatrooms,
             real_chatrooms: ChatToHandle::dedupe(&chatroom_participants),
@@ -215,6 +233,7 @@ impl Config {
             offset: get_offset(),
             db: conn,
             converter: Converter::determine(),
+            phonenumber_to_humanname__option_map
         })
     }
 
@@ -350,6 +369,7 @@ impl Config {
         UNKNOWN
     }
 }
+
 
 #[cfg(test)]
 mod filename_tests {
